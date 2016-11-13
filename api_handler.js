@@ -359,14 +359,15 @@ var API = {
     add_tourney_character: function(req,res) {
         var response = { status: {code:"0",description:":)"} };
         //required items
+        var number = req.body.number;
         var character_id = req.body.character_id;
         var tourney_id = req.body.tourney_id;
 
         //optional fields
         var user_id = req.body.user_id;
 
-        if (character_id != null && tourney_id != null) {
-            API.database.add_tourney_character(tourney_id, character_id, user_id,
+        if (character_id != null && tourney_id != null && number != null) {
+            API.database.add_tourney_character(number, tourney_id, character_id, user_id,
             function(tourney) {
                 if (tourney) {
                     response.tourney = tourney;

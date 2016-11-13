@@ -53,6 +53,7 @@ var DB = {
           character_count: { type: String, required: true },
           name: { type: String, required: true },
           active_users: [{
+              id: { type: String, required: true },
               user_id: { type: String, required: false },
               character_id: { type: String, required: true },
           }],
@@ -136,8 +137,8 @@ var DB = {
             }
         });
     },
-    add_tourney_character: function (tourney_id, character_id, user_id, callback) {
-        DB.database.collection('tourneys').update({'_id':DB.ObjectId(tourney_id)}, {$addToSet: { "active_users": {"user_id" : user_id, "character_id" : character_id}}} , function(error, result) {
+    add_tourney_character: function (number, tourney_id, character_id, user_id, callback) {
+        DB.database.collection('tourneys').update({'_id':DB.ObjectId(tourney_id)}, {$addToSet: { "active_users": {"id" : number, "user_id" : user_id, "character_id" : character_id}}} , function(error, result) {
             if (result) {
                 callback(result);
             }
