@@ -14,10 +14,8 @@ var DB = {
 
     //schema stuff
     this.userSchema = {};
-    this.driverSchema = {};
-    this.ridesSchema = {};
-    this.couponSchema = {};
-    this.businessSchema = {};
+    this.tourneySchema = {};
+    this.characterSchema = {};
     this.user = {};
     this.tourney = {};
     this.character = {};
@@ -52,9 +50,10 @@ var DB = {
         //create the tourney schema
         DB.tourneySchema = new DB.Schema({
           id: DB.Schema.ObjectId,
+          character_count: { type: String, required: true },
+          name: { type: String, required: true },
           active_users: [{
-              name: { type: String, required: true },
-              user_id: { type: String, required: true },
+              user_id: { type: String, required: false },
               character_id: { type: String, required: true },
           }],
         });
@@ -64,7 +63,6 @@ var DB = {
         DB.characterSchema = new DB.Schema({
           id: DB.Schema.ObjectId,
           name: { type: String, required: true },
-          image: { type: String, required: true },
         });
         DB.character = DB.database.model('character', DB.characterSchema);
       });
@@ -111,6 +109,43 @@ var DB = {
             }
         });
     },
+    add_tourney: function (name, character_count, callback) {
+        var instance = new DB.tourney();
+        instance.name = name;
+        instance.character_count = character_count;
+        instance.save(function (error) {
+            if (error) {
+                console.log(error);
+                callback(false);
+            }
+            else {
+                callback(instance);
+            }
+        });
+    },
+    add_character: function (name, callback) {
+        var instance = new DB.character();
+        instance.name = name;
+        instance.save(function (error) {
+            if (error) {
+                console.log(error);
+                callback(false);
+            }
+            else {
+                callback(instance);
+            }
+        });
+    },
+    add_tourney_character: function (tourney_id, character_id, user_id, callback) {
+        DB.database.collection('tourneys').update({'_id':DB.ObjectId(tourney_id)}, {$addToSet: { "active_users": {"user_id" : user_id, "character_id" : character_id}}} , function(error, result) {
+            if (result) {
+                callback(result);
+            }
+            else {
+                callback(false);
+            }
+        });
+    },
     /*//add member
     add_member: function (first, last, password, salt, email, phone, type, premium_status, stripe_id, callback) {
         var instance = new DB.user();
@@ -127,36 +162,6 @@ var DB = {
         instance.stripe_id = stripe_id;
         var p_hash = DB.generate_piggy_hash(email);
         instance.piggy_hash = p_hash.substring(0, 4);
-        instance.save(function (error) {
-            if (error) {
-                console.log(error);
-                callback(false);
-            }
-            else {
-                callback(instance);
-            }
-        });
-    },
-    add_driver: function (first, last, password, salt, email, phone, type, dl_num, dl_state, dl_pic,
-                          car_model, car_year, car_pic, lp_state, lp_number, callback) {
-        var instance = new DB.driver();
-        instance.name.first = first;
-        instance.name.last = last;
-        instance.password = password;
-        instance.salt = salt;
-        instance.email = email;
-        instance.phone = phone;
-        instance.user_type = type;
-        instance.dl.number = dl_num;
-        instance.dl.state = dl_state;
-        instance.dl.pic = dl_pic;
-        instance.car.model = car_model;
-        instance.car.year = car_year;
-        instance.car.pic = car_pic;
-        instance.license_plate.state = lp_state;
-        instance.license_plate.number = lp_number;
-        var p_hash = DB.generate_piggy_hash(email);
-        //instance.piggy_hash = p_hash.substring(0, 4);
         instance.save(function (error) {
             if (error) {
                 console.log(error);
@@ -213,15 +218,6 @@ var DB = {
             callback(0);
           }
         });
-    },
-    complete_ride: function (ride_id, callback) {
-        DB.database.collection('rides').update({'_id':DB.ObjectId(ride_id)}, {$set: {'ride_status': 'completed'}});
-        DB.database.collection('rides').find({"_id":DB.ObjectId(ride_id)}, {rider_id: 1, coupon: 1}).limit(5).toArray(function(err,docs) {
-            if (docs[0] != null) {
-                DB.database.collection('users').update({'_id':DB.ObjectId(docs[0].rider_id)}, {$addToSet: {'active_coupons': docs[0].coupon}});
-            }
-        });
-        return 1;
     },
     delete_ride: function (ride_id, callback) {
       DB.database.collection('rides').remove({'_id':DB.ObjectId(ride_id)}, function(error, result) {
