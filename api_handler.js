@@ -28,7 +28,7 @@ var API = {
             console.log("Failure: API Initialization");
     },
     start: function() {
-        // login
+        // login 
         API.app.all('/login(/)?', function(req,res) {
             if (req.method == "POST") {
                 API.login(req,res);
