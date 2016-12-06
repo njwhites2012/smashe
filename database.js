@@ -6,7 +6,7 @@ var DB = {
     this.ObjectId = require('mongoose').Types.ObjectId;
     this.Schema = this.mongoose.Schema;
 
-    this.mongoose.connect('mongodb://smasher:supersmash@ds151127.mlab.com:51127/heroku_165q34gw');
+    this.mongoose.connect('mongodb://smasher:supersmash@ds127978.mlab.com:27978/heroku_m7rp3ssh');
     this.database = this.mongoose.connection;
     this.database.on('error', console.error.bind(console, 'connection error:'));
 
