@@ -1,6 +1,6 @@
 {
   "name": "PiggyBack_Cloud",
-  "version": "1.0.0",
+  "version": "6.9.1",
   "description": "A socket layer, restful API, and database interaction. All in one!",
   "main": "main.js",
   "scripts": {
