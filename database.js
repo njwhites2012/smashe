@@ -55,7 +55,7 @@ var DB = {
           active_users: [{
               id: { type: String, required: true },
               user_id: { type: String, required: false },
-              character_id: { type: String, required: true },
+              character_name: { type: String, required: true },
           }],
         });
         DB.tourney = DB.database.model('tourney', DB.tourneySchema);
@@ -63,7 +63,8 @@ var DB = {
         //create the character schema
         DB.characterSchema = new DB.Schema({
           id: DB.Schema.ObjectId,
-          name: { type: String, required: true },
+          name: { type: String, unique: true, required: true },
+          image: { type: String, unique: true, required: true },
         });
         DB.character = DB.database.model('character', DB.characterSchema);
       });
@@ -74,7 +75,7 @@ var DB = {
         var instance = new DB.user();
         instance.name.first = first;
         instance.name.last = last;
-        instance.name.nickname = nickname
+        instance.name.nickname = nickname;
         instance.password = password;
         instance.salt = salt;
         instance.email = email;
@@ -124,9 +125,10 @@ var DB = {
             }
         });
     },
-    add_character: function (name, callback) {
+    add_character: function (name, image, callback) {
         var instance = new DB.character();
         instance.name = name;
+        instance.image = image;
         instance.save(function (error) {
             if (error) {
                 console.log(error);
@@ -137,10 +139,20 @@ var DB = {
             }
         });
     },
-    add_tourney_character: function (number, tourney_id, character_id, user_id, callback) {
-        DB.database.collection('tourneys').update({'_id':DB.ObjectId(tourney_id)}, {$addToSet: { "active_users": {"id" : number, "user_id" : user_id, "character_id" : character_id}}} , function(error, result) {
+    add_tourney_character: function (number, tourney_id, character_name, user_id, callback) {
+        DB.database.collection('tourneys').update({'_id':DB.ObjectId(tourney_id)}, {$addToSet: { "active_users": {"id" : number, "user_id" : user_id, "character_name" : character_id}}} , function(error, result) {
             if (result) {
                 callback(result);
+            }
+            else {
+                callback(false);
+            }
+        });
+    },
+    get_character: function(name, callback) {
+        DB.database.collection('characters').find({'name': name}).limit(1).toArray(function(err,docs) {
+            if (docs[0] != null) {
+                callback(docs);
             }
             else {
                 callback(false);
@@ -232,17 +244,6 @@ var DB = {
     },
     get_all_unclaimed_rides: function(city, state, callback) {
         DB.database.collection('rides').find({'pickup_address.city': city,'pickup_address.state': state,'ride_status': 'unclaimed'}).limit(50).toArray(function(err,docs) {
-            console.log(JSON.stringify(docs));
-            if (docs[0] != null) {
-                callback(docs);
-            }
-            else {
-                callback(false);
-            }
-        });
-    },
-    get_user_rides: function(user_id, callback) {
-        DB.database.collection('rides').find({'rider_id': user_id, 'ride_status': {$ne: 'completed'}}).limit(50).toArray(function(err,docs) {
             console.log(JSON.stringify(docs));
             if (docs[0] != null) {
                 callback(docs);
