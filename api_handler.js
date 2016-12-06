@@ -28,7 +28,7 @@ var API = {
             console.log("Failure: API Initialization");
     },
     start: function() {
-        // login 
+        // login
         API.app.all('/login(/)?', function(req,res) {
             if (req.method == "POST") {
                 API.login(req,res);
@@ -73,10 +73,10 @@ var API = {
                 API.methodNotAllowed(req,res);
             }
         });
-        // get user
-        API.app.all('/user(/)?', function(req,res) {
+        // get character
+        API.app.all('/character(/)?', function(req,res) {
             if (req.method == "GET") {
-                API.user(req,res);
+                API.character(req,res);
             }
             else {
                 API.methodNotAllowed(req,res);
@@ -338,11 +338,12 @@ var API = {
         var response = { status: {code:"0",description:":)"} };
         //required items
         var name = req.body.name;
+        var image = req.body.image;
         if (name != null) {
-            API.database.add_character(name,
+            API.database.add_character(name, image,
             function(character) {
                 if (character) {
-                    response.character_id = character._id;
+                    response.character = character;
                     API.sendResponse(req, res, response);
                 }
                 else {
@@ -360,14 +361,14 @@ var API = {
         var response = { status: {code:"0",description:":)"} };
         //required items
         var number = req.body.number;
-        var character_id = req.body.character_id;
+        var character_name = req.body.character_name;
         var tourney_id = req.body.tourney_id;
 
         //optional fields
         var user_id = req.body.user_id;
 
-        if (character_id != null && tourney_id != null && number != null) {
-            API.database.add_tourney_character(number, tourney_id, character_id, user_id,
+        if (character_name != null && tourney_id != null && number != null) {
+            API.database.add_tourney_character(number, tourney_id, character_name, user_id,
             function(tourney) {
                 if (tourney) {
                     response.tourney = tourney;
@@ -384,41 +385,17 @@ var API = {
             API.badDataReceived(req,res);
         }
     },
-    delete_ride: function(req,res) {
+    
+    //get character
+    character: function(req,res) {
         var response = { status: {code:"0",description:":)"} };
 
-        var ride_id = req.body.ride_id;
+        var name = req.query.name;
 
-        if (ride_id != null) {
-            API.database.delete_ride(ride_id,
-              function(user) {
-                if (user) {
-                    response.user = {};
-                    response.user.user_id = user._id;
-                    API.sendResponse(req,res,response);
-                }
-                else {
-                    response.status.code = "-22";
-                    response.status.description = "Error Deleted From the Database.";
-                    API.sendResponse(req,res,response);
-                }
-            });
-        }
-        else {
-            API.badDataReceived(req,res);
-        }
-    },
-    //gets all unclaimed rides
-    rides: function(req,res) {
-        var response = { status: {code:"0",description:":)"} };
-
-        var city = req.query.city;
-        var state = req.query.state;
-
-        if (city != null && state != null) {
-          var rides = API.database.get_all_unclaimed_rides(city, state, function(rides){
-              if (rides) {
-                  response.rides = rides;
+        if (name != null) {
+          var character = API.database.get_character(name, function(character){
+              if (character) {
+                  response.character = character;
                   API.sendResponse(req,res,response);
               }
               else {
