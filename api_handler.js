@@ -385,6 +385,7 @@ var API = {
             API.badDataReceived(req,res);
         }
     },
+    
     //get character
     character: function(req,res) {
         var response = { status: {code:"0",description:":)"} };
